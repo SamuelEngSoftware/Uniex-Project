@@ -1,5 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/iVa2Dd1Z)
-[![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=20877800)
 # :checkered_flag: UniEx
 
 O UniEx é uma plataforma web full-stack que serve como uma ponte entre a universidade e a comunidade. O sistema permite que coordenadores e professores divulguem e gerenciem cursos, oficinas e workshops de extensão, enquanto o público geral pode facilmente encontrar, se inscrever e participar dessas oportunidades de aprendizado.
