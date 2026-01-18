@@ -1,37 +1,19 @@
 import { Request, Response } from "express";
-import { AppDataSource } from "../config/data-source";
-import { User } from "../entities/User";
-import bcrypt from "bcryptjs";
+import { UserService } from "../services/UserService";
 
 export class UserController {
 
   async create(req: Request, res: Response) {
-    const { name, email, password, role } = req.body;
+    try {
+      const { name, email, password, role } = req.body;
 
-    const userRepository = AppDataSource.getRepository(User);
+      const userService = new UserService();
+      
+      const user = await userService.create({ name, email, password, role });
 
-    const userExists = await userRepository.findOneBy({ email });
-
-    if (userExists) {
-      return res.status(400).json({ message: "E-mail já cadastrado!" });
+      return res.status(201).json(user);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
     }
-
-    const passwordHash = await bcrypt.hash(password, 8);
-
-    const user = userRepository.create({
-      name,
-      email,
-      password: passwordHash, 
-      role 
-    });
-
-    await userRepository.save(user);
-
-    return res.status(201).json({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role
-    });
   }
 }

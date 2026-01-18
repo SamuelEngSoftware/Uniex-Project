@@ -1,56 +1,40 @@
 import { Request, Response } from "express";
-import { AppDataSource } from "../config/data-source";
-import { Subscription } from "../entities/Subscription";
-import { Course } from "../entities/Course";
+import { SubscriptionService } from "../services/SubscriptionService";
 
 export class SubscriptionController {
 
   async create(req: Request, res: Response) {
-    const { courseId } = req.body;
-    const userId = req.user.id; 
+    try {
+      const { courseId } = req.body;
+      const userId = req.user.id;
 
-    const subscriptionRepo = AppDataSource.getRepository(Subscription);
-    const courseRepo = AppDataSource.getRepository(Course);
+      const subscriptionService = new SubscriptionService();
+      
+      const subscription = await subscriptionService.create(userId, courseId);
 
-    const course = await courseRepo.findOneBy({ id: courseId });
-    if (!course) {
-      return res.status(404).json({ message: "Curso não encontrado" });
+      return res.status(201).json({ 
+        message: "Inscrição realizada com sucesso!", 
+        subscription 
+      });
+
+    } catch (error: any) {
+      if (error.message === "Curso não encontrado") {
+        return res.status(404).json({ message: error.message });
+      }
+      return res.status(400).json({ message: error.message });
     }
-
-    const alreadySubscribed = await subscriptionRepo.findOneBy({
-      courseId,
-      userId
-    });
-
-    if (alreadySubscribed) {
-      return res.status(400).json({ message: "Você já está inscrito neste curso!" });
-    }
-
-    const totalSubs = await subscriptionRepo.countBy({ courseId });
-
-    if (totalSubs >= course.spots) {
-      return res.status(400).json({ message: "Ops! As vagas para este curso acabaram." });
-    }
-
-    const subscription = subscriptionRepo.create({
-      userId,
-      courseId
-    });
-
-    await subscriptionRepo.save(subscription);
-
-    return res.status(201).json({ message: "Inscrição realizada com sucesso!", subscription });
   }
 
   async listMyCourses(req: Request, res: Response) {
-    const userId = req.user.id;
-    const subscriptionRepo = AppDataSource.getRepository(Subscription);
+    try {
+      const userId = req.user.id;
+      
+      const subscriptionService = new SubscriptionService();
+      const mySubscriptions = await subscriptionService.listMySubscriptions(userId);
 
-    const mySubscriptions = await subscriptionRepo.find({
-      where: { userId },
-      relations: ["course"] 
-    });
-
-    return res.json(mySubscriptions);
+      return res.json(mySubscriptions);
+    } catch (error) {
+      return res.status(500).json({ message: "Erro ao buscar inscrições" });
+    }
   }
 }

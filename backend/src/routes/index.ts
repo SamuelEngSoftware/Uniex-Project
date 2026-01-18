@@ -4,6 +4,12 @@ import { AuthController } from "../controllers/AuthController";
 import { CourseController } from "../controllers/CourseController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { SubscriptionController } from "../controllers/SubscriptionController";
+import { validateResource } from "../middlewares/ValidateResource"; 
+import { userSchema } from "../schemas/userSchema";
+import { loginSchema } from "../schemas/loginSchema";
+import { courseSchema } from "../schemas/courseSchema";
+import { subscriptionSchema } from "../schemas/subscriptionSchema";
+
 
 const routes = Router();
 
@@ -14,10 +20,14 @@ const courseController = new CourseController();
 const subscriptionController = new SubscriptionController();
 
 
-routes.post("/users", userController.create);
-routes.post("/login", authController.login);
-routes.post("/courses", authMiddleware, courseController.create);
-routes.post("/subscribe", authMiddleware, subscriptionController.create);
-routes.get("/my-courses", authMiddleware, subscriptionController.listMyCourses);
+routes.post("/users", validateResource(userSchema), userController.create);
+routes.post("/login", validateResource(loginSchema), authController.login);
+routes.get("/courses", courseController.list);
+
+routes.use(authMiddleware);
+
+routes.post("/courses", validateResource(courseSchema), courseController.create);
+routes.post("/subscribe", validateResource(subscriptionSchema), subscriptionController.create);
+routes.get("/my-courses", subscriptionController.listMyCourses);
 
 export default routes;
