@@ -2,8 +2,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { UserPlus } from 'lucide-vue-next'
-import AppNavbar from '../components/AppNavbar.vue'
+import { UserPlus, AlertCircle } from 'lucide-vue-next' 
+import AppNavbar from '../components/AppNavBar.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -13,19 +13,26 @@ const email = ref('')
 const password = ref('')
 const role = ref('participante') 
 const isLoading = ref(false)
+const errorMessage = ref('') 
 
 const handleRegister = async () => {
   if (isLoading.value) return
+  
   isLoading.value = true
+  errorMessage.value = '' 
 
   try {
-    await authStore.register(name.value, email.value, password.value, role.value)
+    await authStore.register(
+      name.value, 
+      email.value.toLowerCase(), 
+      password.value, 
+      role.value
+    )
     
-    alert('deu certo criar a conta!') // antes de entregar vou tirar esses alertas feios
-    router.push('/login') 
+    router.push('/login')
     
   } catch (error: any) {
-    alert(error.response?.data?.message || 'Deu algum b.o ao tentar criar')
+    errorMessage.value = error.response?.data?.message || 'Ocorreu um erro ao criar a conta.'
   } finally {
     isLoading.value = false
   }
@@ -39,12 +46,17 @@ const handleRegister = async () => {
     <div class="flex-1 flex items-center justify-center px-4">
       <div class="w-full max-w-[400px] bg-white rounded-2xl shadow-xl p-8 border border-gray-100 text-center">
         
-        <div class="mx-auto mb-4 w-12 h-12 bg-green-50 rounded-full flex items-center justify-center text-green-600">
+        <div class="mx-auto mb-4 w-12 h-12 bg-black rounded-full flex items-center justify-center text-white">
           <UserPlus :size="20" />
         </div>
 
         <h1 class="text-xl font-bold text-gray-900 mb-1">Crie sua conta</h1>
         <p class="text-sm text-gray-500 mb-6">Junte-se ao UniEx</p>
+
+        <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-left animate-in fade-in slide-in-from-top-2">
+          <AlertCircle class="w-4 h-4 text-red-500 flex-shrink-0" />
+          <p class="text-xs text-red-600 font-medium">{{ errorMessage }}</p>
+        </div>
 
         <form @submit.prevent="handleRegister" class="space-y-4 text-left">
           
@@ -100,8 +112,9 @@ const handleRegister = async () => {
           <button 
             type="submit"
             :disabled="isLoading"
-            class="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition transform active:scale-[0.98] text-sm mt-2 disabled:opacity-50"
+            class="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition transform active:scale-[0.98] text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            <span v-if="isLoading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
             {{ isLoading ? 'Criando conta...' : 'Cadastrar' }}
           </button>
         </form>

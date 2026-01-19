@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { LogIn } from 'lucide-vue-next'
-import AppNavbar from '../components/AppNavbar.vue'
+import { LogIn, AlertCircle } from 'lucide-vue-next' 
+import AppNavbar from '../components/AppNavBar.vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth' 
 
@@ -20,12 +20,12 @@ const handleLogin = async () => {
   errorMessage.value = ''
 
   try {
-    const user = await authStore.login(email.value, password.value)
-    alert(`login deu certo, ${user.name}`) // antes de entregar vou tirar esses alertas feios
+    await authStore.login(email.value.toLowerCase(), password.value)
+    router.push('/') 
     
   } catch (error: any) {
     console.error(error)
-    errorMessage.value = error.response?.data?.message 
+    errorMessage.value = error.response?.data?.message || 'Email ou senha incorretos.'
   } finally {
     isLoading.value = false
   }
@@ -48,6 +48,11 @@ const handleLogin = async () => {
         <h1 class="text-xl font-bold text-gray-900 mb-1">Entrar no UniEx</h1>
         <p class="text-sm text-gray-500 mb-6">Gerencie seus cursos e inscrições</p>
 
+        <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2 text-left">
+          <AlertCircle class="w-4 h-4 text-red-500 flex-shrink-0" />
+          <p class="text-xs text-red-600 font-medium">{{ errorMessage }}</p>
+        </div>
+
         <form @submit.prevent="handleLogin" class="space-y-4 text-left">
           
           <div>
@@ -57,6 +62,7 @@ const handleLogin = async () => {
               type="email" 
               class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition"
               placeholder="seu@email.com"
+              required
             />
           </div>
 
@@ -67,21 +73,25 @@ const handleLogin = async () => {
               type="password" 
               class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition"
               placeholder="••••••••"
+              required
             />
           </div>
 
           <button 
             type="submit"
             :disabled="isLoading"
-            class="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition transform active:scale-[0.98] text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed"          >
-            {{ isLoading ? 'Entrando...': 'Entrar'}}
+            class="w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition transform active:scale-[0.98] text-sm mt-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"          >
+            <span v-if="isLoading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            {{ isLoading ? 'Entrando...' : 'Entrar' }}
           </button>
 
         </form>
 
         <p class="mt-6 text-xs text-gray-500">
           Não tem uma conta? 
-          <a href="/register" class="text-blue-600 font-semibold hover:underline">Cadastre-se</a>
+          <RouterLink to="/register" class="text-blue-600 font-semibold hover:underline">
+            Cadastre-se
+          </RouterLink>
         </p>
 
       </div>
