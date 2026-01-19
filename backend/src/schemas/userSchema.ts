@@ -9,8 +9,8 @@ export const userSchema = z.object({
     password: z
       .string({ message: "Senha é obrigatória" })
       .min(6, "A senha deve ter no mínimo 6 caracteres"),
-    role: z.enum(["participante", "coordenador"], {
-      message: "O tipo deve ser 'participante' ou 'coordenador'"
+    role: z.enum(["participante", "coordenador", "admin"], {
+      message: "O tipo deve ser 'participante', 'coordenador' ou 'admin'"
     }),
   }),
 });

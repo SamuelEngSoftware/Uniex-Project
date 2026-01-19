@@ -18,9 +18,10 @@ export class Subscription {
   @Column()
   userId!: string; 
 
-  @ManyToOne(() => Course)
+  @ManyToOne(() => Course, (course) => course.subscriptions)
   @JoinColumn({ name: "courseId" })
   course!: Course;
+
 
   @Column()
   courseId!: string;

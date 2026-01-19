@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { User } from "./User";
+import { Subscription } from "./Subscription";
 
 @Entity("courses")
 export class Course {
@@ -26,4 +27,7 @@ export class Course {
   @ManyToOne(() => User)
   @JoinColumn({ name: "coordenador_id" }) 
   coordenador!: User;
+
+  @OneToMany(() => Subscription, (subscription) => subscription.course)
+  subscriptions!: Subscription[];
 }
