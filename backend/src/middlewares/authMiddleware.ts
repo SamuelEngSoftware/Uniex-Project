@@ -23,7 +23,7 @@ export function authMiddleware(
   const [, token] = authorization.split(" ");
 
   try {
-    const decoded = jwt.verify(token, "uma_chave_super_secreta_do_uniex");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
     
     const { id, role } = decoded as TokenPayload;
 

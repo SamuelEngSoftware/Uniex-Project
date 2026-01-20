@@ -5,7 +5,7 @@ import { Subscription } from "../entities/Subscription";
 
 export const AppDataSource = new DataSource({
   type: "sqlite", 
-  database: "database.sqlite", 
+  database: process.env.DATABASE_PATH || "./src/database/database.sqlite", 
   synchronize: true, 
   logging: false, 
   entities: [User, Course, Subscription], 

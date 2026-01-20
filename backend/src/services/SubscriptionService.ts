@@ -1,43 +1,38 @@
-import { AppDataSource } from "../config/data-source";
-import { Subscription } from "../entities/Subscription";
-import { Course } from "../entities/Course";
+import { SubscriptionRepository } from "../repositories/SubscriptionRepository";
+import { CourseRepository } from "../repositories/CourseRepository";
 
 export class SubscriptionService {
-  private subscriptionRepo = AppDataSource.getRepository(Subscription);
-  private courseRepo = AppDataSource.getRepository(Course);
-
+  
   async create(userId: string, courseId: string) {
-    const course = await this.courseRepo.findOneBy({ id: courseId });
-    if (!course) {
-      throw new Error("Curso não encontrado");
-    }
-    const alreadySubscribed = await this.subscriptionRepo.findOneBy({
-      courseId,
-      userId
-    });
+    const course = await CourseRepository.findOneBy({ id: courseId });
+    if (!course) throw new Error("Curso não encontrado");
+    const isSubscribed = await SubscriptionRepository.isUserSubscribed(userId, courseId);
+    if (isSubscribed) throw new Error("Você já está inscrito neste curso!");
 
-    if (alreadySubscribed) {
-      throw new Error("Você já está inscrito neste curso!");
-    }
+    const totalSubs = await SubscriptionRepository.countBy({ courseId });
+    if (totalSubs >= course.spots) throw new Error("Ops! As vagas para este curso acabaram.");
 
-    const totalSubs = await this.subscriptionRepo.countBy({ courseId });
-    if (totalSubs >= course.spots) {
-      throw new Error("Ops! As vagas para este curso acabaram.");
-    }
-
-    const subscription = this.subscriptionRepo.create({
-      userId,
-      courseId
-    });
-
-    await this.subscriptionRepo.save(subscription);
+    const subscription = SubscriptionRepository.create({ userId, courseId });
+    await SubscriptionRepository.save(subscription);
+    
     return subscription;
   }
 
   async listMySubscriptions(userId: string) {
-    return await this.subscriptionRepo.find({
+    return await SubscriptionRepository.find({
       where: { userId },
       relations: ["course"]
     });
+  }
+  
+  async delete(subscriptionId: string, userId: string) {
+      const subscription = await SubscriptionRepository.findSubscriptionWithUser(subscriptionId);
+
+      if (!subscription) throw new Error("Inscrição não encontrada.");
+    
+      if (subscription.user.id !== userId) throw new Error("Você não tem permissão para cancelar esta inscrição.");
+
+      await SubscriptionRepository.remove(subscription);
+      return { message: "Inscrição cancelada com sucesso." };
   }
 }

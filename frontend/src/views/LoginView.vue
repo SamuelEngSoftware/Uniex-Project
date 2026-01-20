@@ -7,12 +7,10 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore() 
-
 const email = ref('')
 const password = ref('')
 const isLoading = ref(false)
 const errorMessage = ref('') 
-
 const handleLogin = async () => {
   if (isLoading.value) return
   

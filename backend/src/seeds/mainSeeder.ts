@@ -43,7 +43,7 @@ const runSeeder = async () => {
     const coursesData = [];
     for (let i = 1; i <= 40; i++) {
       coursesData.push({
-        title: `Curso de Tecnologia Módulo ${i}`,
+        title: `Oficina ${i}`,
         description: `Domine a tecnologia ${i} com projetos práticos e desafios reais.`,
         date: i % 2 === 0 ? "2025-05-10" : "2025-08-20",
         spots: 20 + i, 

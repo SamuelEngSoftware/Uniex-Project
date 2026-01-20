@@ -7,14 +7,12 @@ import AppNavbar from '../components/AppNavBar.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
-
 const name = ref('')
 const email = ref('')
 const password = ref('')
 const role = ref('participante') 
 const isLoading = ref(false)
 const errorMessage = ref('') 
-
 const handleRegister = async () => {
   if (isLoading.value) return
   

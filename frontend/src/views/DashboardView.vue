@@ -7,6 +7,8 @@ import ConfirmationModal from '../components/ConfirmationModal.vue'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
 import { Calendar, Users, Plus, BookOpen, Briefcase, Pencil, Trash2, LogOut } from 'lucide-vue-next'
+import { formatDate } from '../utils/formatters'
+import type { Course, Subscription, PaginatedResponse } from '../types/index'
 
 const authStore = useAuthStore()
 
@@ -15,16 +17,14 @@ const isCoordinator = computed(() => {
   return role === 'coordenador' || role === 'admin'
 })
 
-const mySubscriptions = ref<any[]>([])
-const managedCourses = ref<any[]>([])
+const mySubscriptions = ref<Subscription[]>([])
+const managedCourses = ref<Course[]>([])
 const isLoading = ref(true)
 const showCreateModal = ref(false)
-const courseToEdit = ref<any>(null) 
-
+const courseToEdit = ref<Course | null>(null)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const limit = 6 
-
 const isModalOpen = ref(false)
 const modalConfig = reactive({
   title: '',
@@ -36,12 +36,7 @@ const modalConfig = reactive({
 })
 
 const openModal = (config: any) => {
-  modalConfig.title = config.title
-  modalConfig.message = config.message
-  modalConfig.type = config.type || 'info'
-  modalConfig.confirmText = config.confirmText || 'Confirmar'
-  modalConfig.showCancel = config.showCancel ?? true
-  modalConfig.action = config.action
+  Object.assign(modalConfig, config) 
   isModalOpen.value = true
 }
 
@@ -76,7 +71,7 @@ const openCreateModal = () => {
     showCreateModal.value = true
 }
 
-const editCourse = (course: any) => {
+const editCourse = (course: Course) => {
     courseToEdit.value = course 
     showCreateModal.value = true 
 }
@@ -84,7 +79,7 @@ const editCourse = (course: any) => {
 const deleteCourse = (courseId: string) => {
   openModal({
     title: 'Excluir Curso',
-    message: 'Tem certeza que deseja excluir este curso permanentemente? Esta ação não pode ser desfeita.',
+    message: 'Tem certeza que deseja excluir este curso permanentemente?',
     type: 'error',
     confirmText: 'Sim, Excluir',
     action: async () => {
@@ -95,7 +90,7 @@ const deleteCourse = (courseId: string) => {
             setTimeout(() => {
                 openModal({
                     title: 'Sucesso',
-                    message: 'O curso foi excluído corretamente.',
+                    message: 'Curso excluído corretamente.',
                     type: 'success',
                     showCancel: false,
                     confirmText: 'OK'
@@ -103,9 +98,6 @@ const deleteCourse = (courseId: string) => {
             }, 300)
         } catch (error) {
             console.error(error);
-            setTimeout(() => {
-                openModal({ title: 'Erro', message: 'Não foi possível excluir o curso.', type: 'error', showCancel: false })
-            }, 300)
         }
     }
   })
@@ -114,7 +106,7 @@ const deleteCourse = (courseId: string) => {
 const leaveCourse = (subscriptionId: string) => {
   openModal({
     title: 'Cancelar Inscrição',
-    message: 'Você tem certeza que deseja sair deste curso? Sua vaga será liberada.',
+    message: 'Você tem certeza que deseja sair deste curso?',
     type: 'warning',
     confirmText: 'Sim, Sair',
     action: async () => {
@@ -133,9 +125,6 @@ const leaveCourse = (subscriptionId: string) => {
             }, 300)
         } catch (error) {
             console.error(error);
-            setTimeout(() => {
-                openModal({ title: 'Erro', message: 'Erro ao sair do curso.', type: 'error', showCancel: false })
-            }, 300)
         }
     }
   })
@@ -143,7 +132,7 @@ const leaveCourse = (subscriptionId: string) => {
 
 const fetchMySubscriptions = async () => {
   try {
-    const response = await api.get('/my-courses') 
+    const response = await api.get<Subscription[]>('/my-courses') 
     mySubscriptions.value = response.data 
   } catch (error) { console.error(error) }
 }
@@ -152,15 +141,13 @@ const fetchManagedCourses = async () => {
   if (!isCoordinator.value) return
 
   try {
-    const response = await api.get('/my-dashboard', {
+    const response = await api.get<PaginatedResponse<Course>>('/my-dashboard', {
         params: { page: currentPage.value, limit: limit }
     })
     managedCourses.value = response.data.data 
     totalPages.value = response.data.totalPages
   } catch (error) { console.error(error) }
 }
-
-const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('pt-BR')
 </script>
 
 <template>
@@ -192,29 +179,13 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
           <p class="text-gray-500 mt-1">
             Olá, {{ authStore.user?.name }} 
             
-            <span 
-                v-if="authStore.user?.role === 'admin'" 
-                class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-            >
-                Admin
-            </span>
-
-            <span 
-                v-else-if="authStore.user?.role === 'coordenador'" 
-                class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-            >
-                Coordenador
-            </span>
+            <span v-if="authStore.user?.role === 'admin'" class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Admin</span>
+            <span v-else-if="authStore.user?.role === 'coordenador'" class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Coordenador</span>
           </p>
         </div>
 
-        <button 
-          v-if="isCoordinator"
-          @click="openCreateModal"
-          class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-md font-medium"
-        >
-          <Plus :size="20" />
-          Novo Curso
+        <button v-if="isCoordinator" @click="openCreateModal" class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-md font-medium">
+          <Plus :size="20" /> Novo Curso
         </button>
       </div>
     </div>
@@ -223,8 +194,7 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
       
       <section v-if="isCoordinator">
         <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-l-4 border-blue-500 pl-3">
-          <Briefcase class="text-blue-600" :size="24" />
-          Gerenciar Meus Cursos
+          <Briefcase class="text-blue-600" :size="24" /> Gerenciar Meus Cursos
         </h2>
         
         <div v-if="managedCourses.length === 0 && !isLoading" class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center border-dashed">
@@ -235,17 +205,10 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
         <div v-else>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div v-for="course in managedCourses" :key="course.id" class="bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden hover:shadow-md transition relative group">
-                    
                     <div class="absolute top-3 right-3 flex items-center gap-2 z-10">
                         <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded uppercase shadow-sm">Gestor</span>
-                        
-                        <button @click.stop="editCourse(course)" class="p-1.5 bg-white text-gray-500 hover:text-blue-600 border border-gray-200 rounded hover:border-blue-400 transition shadow-sm" title="Editar">
-                            <Pencil :size="14" />
-                        </button>
-
-                        <button @click.stop="deleteCourse(course.id)" class="p-1.5 bg-white text-gray-500 hover:text-red-600 border border-gray-200 rounded hover:border-red-400 transition shadow-sm" title="Excluir">
-                            <Trash2 :size="14" />
-                        </button>
+                        <button @click.stop="editCourse(course)" class="p-1.5 bg-white text-gray-500 hover:text-blue-600 border border-gray-200 rounded hover:border-blue-400 transition shadow-sm" title="Editar"><Pencil :size="14" /></button>
+                        <button @click.stop="deleteCourse(course.id)" class="p-1.5 bg-white text-gray-500 hover:text-red-600 border border-gray-200 rounded hover:border-red-400 transition shadow-sm" title="Excluir"><Trash2 :size="14" /></button>
                     </div>
 
                     <div class="p-6">
@@ -258,19 +221,13 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
                     </div>
                 </div>
             </div>
-
-            <Pagination 
-                :current-page="currentPage" 
-                :total-pages="totalPages" 
-                @change-page="changePage" 
-            />
+            <Pagination :current-page="currentPage" :total-pages="totalPages" @change-page="changePage" />
         </div>
       </section>
 
       <section>
         <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-l-4 border-green-500 pl-3">
-          <BookOpen class="text-green-600" :size="24" />
-          Minhas Inscrições
+          <BookOpen class="text-green-600" :size="24" /> Minhas Inscrições
         </h2>
 
         <div v-if="mySubscriptions.length === 0 && !isLoading" class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
@@ -280,13 +237,8 @@ const formatDate = (dateString: string) => new Date(dateString).toLocaleDateStri
 
         <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div v-for="sub in mySubscriptions" :key="sub.id" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition relative group">
-            
             <div class="absolute top-3 right-3 z-10">
-                 <button 
-                    @click.stop="leaveCourse(sub.id)"
-                    class="flex items-center gap-1 px-2 py-1 bg-white text-gray-500 hover:text-red-600 border border-gray-200 rounded text-xs font-bold hover:border-red-300 transition shadow-sm"
-                    title="Cancelar Inscrição"
-                 >
+                 <button @click.stop="leaveCourse(sub.id)" class="flex items-center gap-1 px-2 py-1 bg-white text-gray-500 hover:text-red-600 border border-gray-200 rounded text-xs font-bold hover:border-red-300 transition shadow-sm" title="Cancelar Inscrição">
                     <LogOut :size="12" /> Sair
                  </button>
             </div>

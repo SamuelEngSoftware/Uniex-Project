@@ -1,14 +1,11 @@
-import { AppDataSource } from "../config/data-source";
-import { User } from "../entities/User";
+import { UserRepository } from "../repositories/UserRepository";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 export class AuthService {
-  private userRepository = AppDataSource.getRepository(User);
-
+  
   async login(email: string, password: string) {
-    
-    const user = await this.userRepository.findOneBy({ email });
+    const user = await UserRepository.findByEmail(email);
 
     if (!user) {
       throw new Error("E-mail ou senha inválidos");
@@ -22,7 +19,7 @@ export class AuthService {
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      "uma_chave_super_secreta_do_uniex", 
+      process.env.JWT_SECRET as string, 
       { expiresIn: "1d" }
     );
 

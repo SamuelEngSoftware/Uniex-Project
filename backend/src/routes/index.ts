@@ -30,5 +30,6 @@ routes.get("/my-courses", subscriptionController.listMyCourses);
 routes.get("/my-dashboard", courseController.listMyCourses);
 routes.put("/courses/:id", validateResource(courseSchema), courseController.update);
 routes.delete("/courses/:id", authMiddleware, courseController.delete);
+routes.delete("/subscriptions/:id",subscriptionController.delete);
 
 export default routes;

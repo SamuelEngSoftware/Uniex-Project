@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
-import { X, Save, Loader2 } from 'lucide-vue-next'
+import { X, Loader2 } from 'lucide-vue-next'
 import api from '../services/api'
+import type { Course } from '../types'
 
 const props = defineProps<{
   isOpen: boolean
-  courseToEdit?: any | null 
+  courseToEdit?: Course | null 
 }>()
 
 const emit = defineEmits(['close', 'success'])
@@ -21,17 +22,20 @@ const form = reactive({
 })
 
 const isEditing = computed(() => !!props.courseToEdit)
+
 watch(
   () => [props.isOpen, props.courseToEdit],
   ([isOpen, course]) => {
     if (isOpen) {
-      if (course) {
-        form.title = course.title
-        form.description = course.description
-        form.spots = course.spots
+      const currentCourse = course as Course | null | undefined;
+      
+      if (currentCourse) {
+        form.title = currentCourse.title
+        form.description = currentCourse.description
+        form.spots = currentCourse.spots
         
-        if (course.date) {
-            const dateObj = new Date(course.date);
+        if (currentCourse.date) {
+            const dateObj = new Date(currentCourse.date);
             form.date = dateObj.toISOString().split('T')[0] || '';
         }
       } else {
@@ -48,9 +52,8 @@ watch(
 const handleSubmit = async () => {
   isLoading.value = true
   errorMessage.value = ''
-
   try {
-    if (isEditing.value) {
+    if (isEditing.value && props.courseToEdit) {
         await api.put(`/courses/${props.courseToEdit.id}`, {
             title: form.title,
             description: form.description,
@@ -65,7 +68,6 @@ const handleSubmit = async () => {
             spots: Number(form.spots)
         })
     }
-    
     emit('success') 
     emit('close')   
   } catch (error: any) {

@@ -7,16 +7,16 @@ import ConfirmationModal from '../components/ConfirmationModal.vue'
 import Pagination from '../components/Pagination.vue'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
+import { formatDate } from '../utils/formatters'
+import type { Course, PaginatedResponse } from '../types'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const isLoading = ref(true)
-const courses = ref<any[]>([])
-
+const courses = ref<Course[]>([])
 const currentPage = ref(1)
 const totalPages = ref(1)
 const limit = 9
-
 const isModalOpen = ref(false)
 const selectedCourseId = ref('')
 const modalConfig = reactive({
@@ -25,13 +25,8 @@ const modalConfig = reactive({
   type: 'info' as 'info' | 'success' | 'error' | 'warning',
   confirmText: 'Confirmar',
   showCancel: true,
-  action: null as (() => void) | null
+  action: null as (() => Promise<void> | void) | null
 })
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return 'A definir'
-  return new Date(dateString).toLocaleDateString('pt-BR')
-}
 
 const openModal = (config: any) => {
   Object.assign(modalConfig, config)
@@ -49,7 +44,7 @@ const handleConfirm = () => {
 const fetchCourses = async () => {
   isLoading.value = true
   try {
-    const response = await api.get('/courses', {
+    const response = await api.get<PaginatedResponse<Course>>('/courses', {
         params: {
             page: currentPage.value,
             limit: limit

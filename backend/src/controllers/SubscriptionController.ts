@@ -37,4 +37,18 @@ export class SubscriptionController {
       return res.status(500).json({ message: "Erro ao buscar inscrições" });
     }
   }
+  async delete(req: Request, res: Response) {
+    try {
+      const { id } = req.params; 
+      const userId = req.user.id; 
+
+      const subscriptionService = new SubscriptionService();
+      
+      await subscriptionService.delete(id, userId);
+
+      return res.status(204).send(); 
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
+    }
+  }
 }
