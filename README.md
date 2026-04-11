@@ -1,6 +1,6 @@
 # :checkered_flag: UniEx
 
-O UniEx é uma plataforma web full-stack que serve como uma ponte entre a universidade e a comunidade. O sistema permite que coordenadores e professores divulguem e gerenciem cursos, oficinas e workshops de extensão, enquanto o público geral pode facilmente encontrar, se inscrever e participar dessas oportunidades de aprendizado.
+O UniEx é uma plataforma web full-stack que serve como uma ponte entre a universidade e a comunidade. O sistema permite que coordenadores e professores divulguem e gerenciem cursos, oficinas e workshops de extensão, enquanto o público geral pode facilmente encontrar, se inscrever e participar dessas oportunidades de aprendizado!
 
 ## :bulb: Objetivo Geral
 Centralizar, simplificar e ampliar o alcance das atividades de extensão universitária, oferecendo uma ferramenta intuitiva para a gestão de cursos por parte da instituição e um canal de acesso facilitado para a comunidade interessada em participar e adquirir novos conhecimentos.
